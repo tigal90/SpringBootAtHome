@@ -2,13 +2,16 @@ package com.example.springboot.service.posts;
 
 import com.example.springboot.domain.posts.Posts;
 import com.example.springboot.domain.posts.PostsRepository;
+import com.example.springboot.web.dto.PostsListResponseDto;
 import com.example.springboot.web.dto.PostsResponseDto;
 import com.example.springboot.web.dto.PostsSaveRequestDto;
 import com.example.springboot.web.dto.PostsUpdateRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -34,5 +37,17 @@ public class PostsService {
         Posts entity = postsRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + id));
         return new PostsResponseDto(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostsListResponseDto> findAllDesc() {
+        return postsRepository.findAllDesc().stream().map(posts -> new PostsListResponseDto(posts)).collect(Collectors.toList());
+        //postsRepository의 결과값을 map()함수 내부에서 받아서 PostsListResponseDto로 변환하고 toList()로 List로 반환
+    }
+
+    @Transactional
+    public void delete (Long id) {
+        Posts posts = postsRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + id));
+        postsRepository.delete(posts); //jpaRepository에서 이미 delete 메소드를 지원하고 있기 때문에 활용 / 엔티티를 파라미터로 삭제할 수도 있고 deleteById 메소드를 이용하면 id로 삭제할 수도 있다.
     }
 }
